@@ -2,33 +2,25 @@ from collections import Counter
 import operator
 import csv
 import re
-import os
+import sys
 
-cn = []
-pt = []
-es = []
-lists = [cn, pt, es]
-names = ['Chinese.csv', 'Portuguese.csv', 'Spanish.csv']
 
-print(os.getcwd())
-lst = os.listdir('lennar/11')
-for item in lst:
-    lst2 = os.listdir('lennar/11/' + item)
-    for each in lst2:
-        my_file = open('lennar/11/' + item + '/' + each, 'r')
-        pattern = re.compile(r'http.[^ ]+/new-homes/\D+/')
-        result = pattern.findall(my_file.read().lower())
-        for item2 in result:
-            if item2.find('espanol.lennar') != -1: es.append(item2)
-            if item2.find('cn.lennar') != -1: cn.append(item2)
-            if item2.find('pt.lennar') != -1: pt.append(item2)
-
-        my_file.close()
-for i in range(3):
+data = sys.stdin.read()
+result = re.findall('http.[^ ]+/new-homes/[\w-]+[^\d]/[\w-]+[^\d]/[\w-]+[^\d]/[\w-]+[^\d?$/]', data.lower())
+pattern = re.compile('\w+\.lennar\.com')
+m = set()
+for each in result:
+    m.add(pattern.search(each).group(0))
+m = list(m)
+lists = [[] for each in m]
+print(m)
+for each in result:
+    lists[m.index(pattern.search(each).group(0))].append(re.search('/new-homes/.+', each).group(0))
+for i in range(len(lists)):
     sorted_x = sorted(dict(Counter(lists[i])).items(), key=operator.itemgetter(1))
-    sorted_x =sorted_x[len(sorted_x)-30:]
-    with open(names[i], "w") as file:
+    sorted_x = sorted_x[-30:]
+    with open(m[i]+'.csv', "w") as file:
         csv_writer = csv.writer(file)
-
+        csv_writer.writerow(["Path", "Count"])
         for item in sorted_x:
             csv_writer.writerow((item[0], item[1]))
